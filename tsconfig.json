@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "jsx": "react",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "baseUrl": "./",
+    "strict": true,
+    "allowJs": true,
+    "outDir": "./dist",
+    "paths": {
+      "@/*": ["src/render/*"],
+      "@@/*": ["src/render/.umi/*"],
+      "@config/*": ["src/render/config/*"],
+      "@components/*": ["src/render/components/*"],
+      "@utils/*": ["src/render/utils/*"],
+      "@typings/*": ["typings/*"],
+      "@pages/*": ["src/render/pages/*"]
+    },
+    "allowSyntheticDefaultImports": true
+  },
+  // "include": ["./typings.d.ts"],
+  // "typings": "./typings.d.ts",
+  // "exclude": [
+  //   "node_modules",
+  //   "dist",
+  //   "scripts",
+  //   "build",
+  // ]
+}
