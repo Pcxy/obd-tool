@@ -24,20 +24,20 @@ export interface IMenu {
 
 export default [
   {
-    title: 'Home',
+    title: '驾校',
     path: '/Home',
     icon: <IconFont type='icon-RectangleCopy172' />,
     subs: [
       {
-        title: 'WebSocket',
-        path: '/WebSocket',
+        title: '桐庐',
+        path: '/Tonglu',
         fullPath: '/Home/WebSocket'
       },
-      {
-        title: 'Edge',
-        path: '/Edge',
-        fullPath: '/Home/Edge'
-      }
+      // {
+      //   title: '万里',
+      //   path: '/Edge',
+      //   fullPath: '/Home/Edge'
+      // }
     ]
   }
 ] as Array<IMenu>

@@ -32,6 +32,20 @@ const chainWebpack = config => {
     config
       // .devtool('eval-cheap-source-map') // 是否开启sourceMap
       .target('electron-renderer')
+      .module
+        .rule('json')
+          .test('/\.json$/')
+          .use('json-loader')
+          .loader('json-loader')
+          .end()
+        .rule('gltf')
+          .test('/\.gltf$/')
+          .use('file-loader')
+          .loader('file-loader')
+          .options({
+            outputPath: 'assets/tonglu/'
+          })
+          .end()
   )
 }
 
@@ -65,6 +79,7 @@ export default {
     '@components': resolvePath('components'),
     '@config': resolvePath('config'),
     '@utils': resolvePath('utils'),
-    '@pages': resolvePath('pages')
+    '@pages': resolvePath('pages'),
+    '@assets': resolvePath('assets')
   }
 }

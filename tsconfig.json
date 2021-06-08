@@ -20,7 +20,8 @@
       "@typings/*": ["typings/*"],
       "@pages/*": ["src/render/pages/*"]
     },
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true
   },
   // "include": ["./typings.d.ts"],
   // "typings": "./typings.d.ts",

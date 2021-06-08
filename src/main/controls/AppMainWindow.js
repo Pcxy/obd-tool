@@ -18,8 +18,8 @@ const log = require('electron-log');
 module.exports = class AppMainWindow extends BrowserWindow {
   constructor() {
     const config = {
-      width: 1010,
-      height: 716,
+      width: 1800,
+      height: 900,
       minWidth: 800,
       minHeight: 600,
       autoHideMenuBar: false,
@@ -60,7 +60,7 @@ module.exports = class AppMainWindow extends BrowserWindow {
     console.log(`file://${path.join(__dirname, 'loading.html')}`)
     this.browserView = new BrowserView()
     this.mainWindow.setBrowserView(this.browserView)
-    this.browserView.setBounds({ x: 0, y: 0, width: 1010, height: 716 })
+    this.browserView.setBounds({ x: 0, y: 0, width: 1800, height: 900 })
     this.browserView.webContents.loadURL(`file://${path.join(__dirname, 'loading.html')}`)
     this.browserView.webContents.on('dom-ready', () => {
       this.mainWindow.show()
