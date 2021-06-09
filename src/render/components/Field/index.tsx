@@ -1,5 +1,6 @@
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Dispatch } from 'redux';
+import { connect, OBDGPSStateType } from 'umi';
 import {
   useLoader,
   Canvas,
@@ -13,10 +14,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 // import { TraceDot } from '@/models/trace';
 import { Color, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import { ConnectState } from '@/models/connect';
 
 type MapProps = {
-  // dispatch: Dispatch;
-  // traceList: Array<TraceDot>;
+  dispatch: Dispatch;
+  obdgps: OBDGPSStateType;
 }
 
 type CarProps = {
@@ -25,19 +27,80 @@ type CarProps = {
   rotation: [number, number, number];
 }
 
-
-function usePrevious<T>(val: T) {
-  const ref = useRef<T>(val);
-  useEffect(() => {
-    ref.current = val;
-  }, [val]);
-  return ref.current;
+type PlaceProps = {
+  dispatch: Dispatch;
+  speed: number;
+  direction: number;
+  rotation: [number, number, number];
+  position: [number, number, number];
 }
+
+const MAX_SPEED = 60;
+const MIN_SPEED = -10;
+const MAX_DIRECTION = 540;
+const MIN_DIRECTION = -540;
+
 
 extend({ OrbitControls });
 
-const Place = () => {
+function useCurrent<T>(val: T) {
+  const ref = useRef<T>();
+  ref.current = val;
+  return ref.current;
+}
+
+const Place: React.FC<PlaceProps> = ({ dispatch, speed, direction, rotation, position }) => {
   const gltf = useLoader(GLTFLoader, './tonglu/field.gltf');
+
+  const speedRef = useRef<number>(0);
+  speedRef.current = speed;
+  const directionRef = useRef<number>(0);
+  directionRef.current = direction;
+  const positionRef = useRef<[number, number, number]>([0, 0, 0]);
+  positionRef.current = position;
+  const rotationRef = useRef<[number, number, number]>([0, 0, 0]);
+  rotationRef.current = rotation;
+
+
+  // 绑定键盘控制事件
+  useEffect(() => {
+    window.addEventListener('keydown', onKeyboardDown);
+    let interval = setInterval(() => {
+      // let [rx, ry, rz] = rotation;
+      // dispatch({
+        //   type: 'obdgps/saveDirection',
+        //   payload: [rx, ry, rz]
+        // });
+      let [x, y, z] = positionRef.current;
+      let [rx, ry, rz] = rotationRef.current;
+      const d = speedRef.current / 3.6 / 60; // 当前每一帧，车辆移动的距离
+      x += d * Math.sin(rz);
+      y += d * Math.cos(rz);
+
+      // 假设车辆方向由下面这个公式（方向盘角度，车速）决定
+      rz += directionRef.current / 360 / 360 * 20 / 60 * speedRef.current;
+      
+      // x += speedRef.current / 3.6 / 60;
+
+      dispatch({
+        type: 'obdgps/savePosition',
+        payload: [x, y, z]
+      });
+
+      dispatch({
+        type: 'obdgps/saveRotation',
+        payload: [rx, ry, rz]
+      })
+
+      console.log('positon', [x, y, z]);
+    }, 1000 / 60);
+    return () => {
+      window.removeEventListener('keydown', onKeyboardDown);
+      clearInterval(interval);
+    }
+  }, []);
+
+  // 加载gltf
   useEffect(() => {
     if (gltf) {
       /**
@@ -74,11 +137,36 @@ const Place = () => {
     }
   }, [gltf]);
 
-  useEffect(() => {
-    window.addEventListener('keypress', (event: KeyboardEvent) => {
-      console.log('key', event.key);
-    });
-  }, []);
+  const onKeyboardDown = (event: KeyboardEvent) => {
+    let e = event || window.event;
+    console.log('key', e.key);
+    switch (e.key) {
+      case 'ArrowUp':
+        dispatch({
+          type: 'obdgps/saveSpeed',
+          payload: speedRef.current < MAX_SPEED ? speedRef.current + 1 : MAX_SPEED,
+        }); break;
+      
+      case 'ArrowDown':
+        dispatch({
+          type: 'obdgps/saveSpeed',
+          payload: speedRef.current > MIN_SPEED ? speedRef.current - 1: MIN_SPEED,
+        }); break;
+      
+      case 'ArrowLeft':
+        dispatch({
+          type: 'obdgps/saveDirection',
+          payload: directionRef.current > MIN_DIRECTION ? directionRef.current - 5: MIN_DIRECTION 
+        }); break;
+
+      case 'ArrowRight':
+        dispatch({
+          type: 'obdgps/saveDirection',
+          payload: directionRef.current < MAX_DIRECTION ? directionRef.current + 5: MAX_DIRECTION
+        }); break;
+    }
+  };
+
   return (
     <>
       <primitive object={gltf.scene} />
@@ -86,7 +174,7 @@ const Place = () => {
   );
 };
 
-const Car = (props: CarProps) => {
+const Car: React.FC<CarProps> = ({ position, rotation }) => {
   const gltf = useLoader(GLTFLoader, './car/car.gltf');
 
   const fpsIndex = useRef<number>(0);
@@ -94,10 +182,11 @@ const Car = (props: CarProps) => {
   const ref = useRef<PrimitiveProps>();
 
   useFrame(({ camera }) => {
-    const { position: [x, y, z], rotation } = props;
+    const [x, y, z] = position;
     ref.current.position.x = x;
     ref.current.position.y = y;
     ref.current.position.z = z;
+    ref.current.rotation.z = -rotation[2];
     camera.position.x = x;
     camera.position.y = y;
     camera.lookAt(x, y, 3);
@@ -106,7 +195,7 @@ const Car = (props: CarProps) => {
 
   return (
     <group>
-      <primitive ref={ref} object={gltf.scene} position={[50, 50, 3]} />
+      <primitive ref={ref} object={gltf.scene} />
     </group>
   );
 }
@@ -163,8 +252,17 @@ const Index = (props: MapProps) => {
             //   </div>
             // }
         >
-          <Place></Place>
-          <Car position={[50, 50, 3]} />
+          <Place
+            dispatch={props.dispatch}
+            speed={props.obdgps.speed}
+            direction={props.obdgps.direction}
+            rotation={props.obdgps.rotation}
+            position={props.obdgps.position}
+          />
+          <Car
+            position={props.obdgps.position}
+            rotation={props.obdgps.rotation}
+          />
         </Suspense>
         {/* <Suspense fallback={null}>
         </Suspense> */}
@@ -197,4 +295,6 @@ const Lights = () => {
 };
 
 
-export default Index;
+export default connect(
+  ({ obdgps }: ConnectState) => ({ obdgps })
+)(Index);
