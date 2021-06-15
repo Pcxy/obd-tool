@@ -26,5 +26,7 @@ declare global {
     stopLoading: () => void
     /** 是否开启自动更新 */
     isOpenAutoUpdate: boolean
+    sendOBD: (obj: any) => void
+    sendGPS: (obj: any) => void
   }
 }

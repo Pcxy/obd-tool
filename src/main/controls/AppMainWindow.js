@@ -80,7 +80,7 @@ module.exports = class AppMainWindow extends BrowserWindow {
       // TODO: MAC平台退出优化
       // if (process.platform !== "darwin") {
       if (this.mainWindow['hide'] && this.mainWindow['setSkipTaskbar']) {
-        this.mainWindow.hide()
+        // this.mainWindow.hide()
         e.preventDefault()
         // this.mainWindow.setSkipTaskbar(true)
       }

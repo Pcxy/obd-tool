@@ -3,6 +3,7 @@ import { Button, Card } from 'antd';
 import { connect, OBDGPSStateType } from 'umi';
 import { ConnectState } from '@/models/connect';
 import Field from '@components/Field';
+import { radianToDegree } from '@/utils/util';
 import styles from './index.less';
 
 interface IProps {
@@ -19,8 +20,11 @@ const Index = (props: IProps) => {
       <div className={styles.tips}>
         <span>车速：{Number(speed).toFixed(2)} km/h</span><br />
         <span>方向盘：{direction} 度</span><br />
-        <span>位置：{position[0].toFixed(2)}, {position[1].toFixed(2)}, {position[2].toFixed(2)}</span><br />
-        <span>转向角: {rotation[0].toFixed(2)}, {rotation[1].toFixed(2)}, {rotation[2].toFixed(2)}</span>
+        <span>位置：{Math.floor(position[0] * 100) / 100}, {Math.floor(position[1] * 100) / 100}, {Math.floor(position[2] * 100) / 100}</span><br />
+        <span>转向角: {Math.floor(radianToDegree(rotation[0]) * 100) / 100}, {Math.floor(radianToDegree(rotation[1]) * 100) / 100}, {Math.floor(radianToDegree(rotation[2]) * 100) / 100}</span>
+      </div>
+      <div className={styles.clients}>
+        <span></span>
       </div>
       <div className={styles.back}>
         <Button onClick={() => {

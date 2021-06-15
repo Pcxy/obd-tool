@@ -15,6 +15,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 // import { TraceDot } from '@/models/trace';
 import { Color, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { ConnectState } from '@/models/connect';
+import { radianToDegree } from '@/utils/util';
 
 type MapProps = {
   dispatch: Dispatch;
@@ -40,6 +41,8 @@ const MIN_SPEED = -10;
 const MAX_DIRECTION = 540;
 const MIN_DIRECTION = -540;
 
+const FPS = 60;
+
 
 extend({ OrbitControls });
 
@@ -61,42 +64,17 @@ const Place: React.FC<PlaceProps> = ({ dispatch, speed, direction, rotation, pos
   const rotationRef = useRef<[number, number, number]>([0, 0, 0]);
   rotationRef.current = rotation;
 
-
   // 绑定键盘控制事件
   useEffect(() => {
     window.addEventListener('keydown', onKeyboardDown);
-    let interval = setInterval(() => {
-      // let [rx, ry, rz] = rotation;
-      // dispatch({
-        //   type: 'obdgps/saveDirection',
-        //   payload: [rx, ry, rz]
-        // });
-      let [x, y, z] = positionRef.current;
-      let [rx, ry, rz] = rotationRef.current;
-      const d = speedRef.current / 3.6 / 60; // 当前每一帧，车辆移动的距离
-      x += d * Math.sin(rz);
-      y += d * Math.cos(rz);
-
-      // 假设车辆方向由下面这个公式（方向盘角度，车速）决定
-      rz += directionRef.current / 360 / 360 * 20 / 60 * speedRef.current;
-      
-      // x += speedRef.current / 3.6 / 60;
-
-      dispatch({
-        type: 'obdgps/savePosition',
-        payload: [x, y, z]
-      });
-
-      dispatch({
-        type: 'obdgps/saveRotation',
-        payload: [rx, ry, rz]
-      })
-
-      console.log('positon', [x, y, z]);
-    }, 1000 / 60);
+    const renderInterval = setInterval(renderIntervalCallback, 1000 / FPS);
+    const sendOBDToMainInterval = setInterval(sendOBDToMainCallback, 200);
+    const sendGPSToMainInterval = setInterval(sendGPSToMainCallback, 100);
     return () => {
       window.removeEventListener('keydown', onKeyboardDown);
-      clearInterval(interval);
+      clearInterval(renderInterval);
+      clearInterval(sendOBDToMainInterval);
+      clearInterval(sendGPSToMainInterval);
     }
   }, []);
 
@@ -139,7 +117,7 @@ const Place: React.FC<PlaceProps> = ({ dispatch, speed, direction, rotation, pos
 
   const onKeyboardDown = (event: KeyboardEvent) => {
     let e = event || window.event;
-    console.log('key', e.key);
+    // console.log('key', e.key);
     switch (e.key) {
       case 'ArrowUp':
         dispatch({
@@ -166,6 +144,60 @@ const Place: React.FC<PlaceProps> = ({ dispatch, speed, direction, rotation, pos
         }); break;
     }
   };
+
+  /**
+   * 60帧渲染定时器回调方法
+   */
+  const renderIntervalCallback = () => {
+    let [x, y, z] = positionRef.current;
+    let [rx, ry, rz] = rotationRef.current;
+    // 当前每一帧，车辆移动的距离，只考虑FPS=60的情况
+    const d = speedRef.current / 3.6 / FPS;
+    // 计算 两个方向上的增量
+    x += d * Math.sin(rz);
+    y += d * Math.cos(rz);
+
+    // 假设车辆方向由下面这个公式（方向盘角度，车速）决定
+    rz += directionRef.current / 360 / 360 * 20 / FPS * speedRef.current;
+
+    if (rz < 0) {
+      rz += Math.PI * 2;
+    } else if (rz > Math.PI * 2) {
+      rz -= Math.PI * 2;
+    }
+
+    dispatch({
+      type: 'obdgps/savePosition',
+      payload: [x, y, z]
+    });
+
+    dispatch({
+      type: 'obdgps/saveRotation',
+      payload: [rx, ry, rz]
+    });
+  }
+
+  /**
+   * 10HZ 发送OBDGPS数据给Main线程回调方法
+   */
+  const sendOBDToMainCallback = () => {
+    const obj = {
+      
+    }
+    window.sendOBD(obj);
+  }
+
+  const sendGPSToMainCallback = () => {
+    const obj = {
+      xCoordinate: Math.floor(positionRef.current[0] * 100),
+      yCoordinate: Math.floor(positionRef.current[1]* 100),
+      zCoordinate: Math.floor(positionRef.current[2] * 100),
+      horizontalAngle: Math.floor(radianToDegree(rotationRef.current[2]) * 100),
+      pitchAngle: Math.floor(radianToDegree(rotationRef.current[0]) * 100),
+      rollAngle: Math.floor(radianToDegree(rotationRef.current[1]) * 100),
+    };
+    window.sendGPS(obj);
+  }
 
   return (
     <>
@@ -247,10 +279,6 @@ const Index = (props: MapProps) => {
       <group>
         <Suspense
           fallback={ null }
-            // <div className={styles.loading}>
-            //     <img src={loadingPng} width="70" height="70"></img>
-            //   </div>
-            // }
         >
           <Place
             dispatch={props.dispatch}
@@ -264,8 +292,6 @@ const Index = (props: MapProps) => {
             rotation={props.obdgps.rotation}
           />
         </Suspense>
-        {/* <Suspense fallback={null}>
-        </Suspense> */}
       </group>
       <Lights />
       <Stats />
@@ -282,18 +308,6 @@ const Lights = () => {
     </>
   )
 }
-
-/**
- * 角度转换成弧度
- *
- * @param degree - 角度
- * @returns 弧度
- */
- const degreeToRadian = (degree: number) => {
-  const radian = (Math.PI * degree) / 180;
-  return radian;
-};
-
 
 export default connect(
   ({ obdgps }: ConnectState) => ({ obdgps })

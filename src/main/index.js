@@ -10,6 +10,7 @@ const Store = require('electron-store')
 const store = new Store()
 const os = require('os')
 const electronDev = require('electron-is-dev')
+const { default: TcpServer } = require('./server')
 
 // 测试用
 store.set('LOCAL_ELECTRON_STORE', 'STORE-MSG: WELCOME TO MY TPL')
@@ -23,10 +24,12 @@ class MainApp {
   constructor() {
     this.mainWindow = null
     this.tray = null
+    this.tcpServer = null;
   }
   init() {
     this.initAppLife()
     this.initIPC()
+    this.initTcpServer();
   }
 
   // 创建右键托盘
@@ -87,6 +90,25 @@ class MainApp {
     ipcMain.on('stop-loading-main', () => {
       this.mainWindow.removeView()
     })
+
+    ipcMain.on('obd', (event, obj) => {
+      if (this.tcpServer) {
+        this.tcpServer.broadcast(obj, 'obd');
+      }
+    });
+
+    ipcMain.on('gps', (event, obj) => {
+      if (this.tcpServer) {
+        this.tcpServer.broadcast(obj, 'gps');
+      }
+    })
+  }
+
+  initTcpServer() {
+    console.log('init tcp server');
+    if (this.tcpServer === null) {
+      this.tcpServer = new TcpServer(3002);
+    }
   }
 }
 
