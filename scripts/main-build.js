@@ -15,13 +15,12 @@ const config_factory = require('./webpack.main');
 require('dotenv').config({ path: path.join(__dirname, '../src/render/.env') });
 
 const root = path.join(__dirname, '..');
-const main = process.env['npm_package_main'];
+const main = process.env['npm_package_main'] || 'src/main/bundle.js';
 const { env, port = process.env.PORT, watch } = argv;
 const spinner = ora('Electron webpack build...');
 const TAG = 'scripts/main-build.js';
 let watching = null;
 let child = null;
-
 const compiler = webpack(config_factory(env));
 compiler.hooks.afterCompile.tap(TAG, () => {
   spinner.stop();
