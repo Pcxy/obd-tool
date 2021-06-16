@@ -20,6 +20,8 @@ app.allowRendererProcessReuse = true
 const isWin7 = os.release().startsWith('6.1')
 if (isWin7) app.disableHardwareAcceleration()
 
+export let webContents;
+
 class MainApp {
   constructor() {
     this.mainWindow = null
@@ -40,6 +42,7 @@ class MainApp {
   // 创建主进程窗口
   createMainWindow() {
     this.mainWindow = new AppMainWindow()
+    webContents = this.mainWindow.webContents;
     this.createTray()
     electronDev || this.handleKeepSingleApp()
   }
@@ -107,7 +110,7 @@ class MainApp {
   initTcpServer() {
     console.log('init tcp server');
     if (this.tcpServer === null) {
-      this.tcpServer = new TcpServer(3002);
+      this.tcpServer = new TcpServer(30001);
     }
   }
 }

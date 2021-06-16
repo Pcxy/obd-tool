@@ -1,5 +1,7 @@
-import { OBDGPSModelType, OBDGPSStateType } from './obd';
+import { OBDGPSStateType  } from './obd';
+import { ServerStateType} from './server';
 
 export interface ConnectState {
-  obdgps: OBDGPSModelType;
+  obdgps: OBDGPSStateType;
+  server: ServerStateType;
 }

@@ -24,6 +24,7 @@ module.exports = class AppMainWindow extends BrowserWindow {
       minHeight: 600,
       autoHideMenuBar: false,
       fullscreen: false,
+      title: 'obd tool',
       webPreferences: {
         nodeIntegration: true,
         webviewTag: true,

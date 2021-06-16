@@ -16,6 +16,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Color, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { ConnectState } from '@/models/connect';
 import { radianToDegree } from '@/utils/util';
+import Place from './Place';
 
 type MapProps = {
   dispatch: Dispatch;
@@ -28,21 +29,6 @@ type CarProps = {
   rotation: [number, number, number];
 }
 
-type PlaceProps = {
-  dispatch: Dispatch;
-  speed: number;
-  direction: number;
-  rotation: [number, number, number];
-  position: [number, number, number];
-}
-
-const MAX_SPEED = 60;
-const MIN_SPEED = -10;
-const MAX_DIRECTION = 540;
-const MIN_DIRECTION = -540;
-
-const FPS = 60;
-
 
 extend({ OrbitControls });
 
@@ -52,159 +38,6 @@ function useCurrent<T>(val: T) {
   return ref.current;
 }
 
-const Place: React.FC<PlaceProps> = ({ dispatch, speed, direction, rotation, position }) => {
-  const gltf = useLoader(GLTFLoader, './tonglu/field.gltf');
-
-  const speedRef = useRef<number>(0);
-  speedRef.current = speed;
-  const directionRef = useRef<number>(0);
-  directionRef.current = direction;
-  const positionRef = useRef<[number, number, number]>([0, 0, 0]);
-  positionRef.current = position;
-  const rotationRef = useRef<[number, number, number]>([0, 0, 0]);
-  rotationRef.current = rotation;
-
-  // 绑定键盘控制事件
-  useEffect(() => {
-    window.addEventListener('keydown', onKeyboardDown);
-    const renderInterval = setInterval(renderIntervalCallback, 1000 / FPS);
-    const sendOBDToMainInterval = setInterval(sendOBDToMainCallback, 200);
-    const sendGPSToMainInterval = setInterval(sendGPSToMainCallback, 100);
-    return () => {
-      window.removeEventListener('keydown', onKeyboardDown);
-      clearInterval(renderInterval);
-      clearInterval(sendOBDToMainInterval);
-      clearInterval(sendGPSToMainInterval);
-    }
-  }, []);
-
-  // 加载gltf
-  useEffect(() => {
-    if (gltf) {
-      /**
-       * 隐藏碰撞体
-       */
-      const colliderOverline = gltf.scene.getObjectByName('collider-overline');
-      const colliderDirection = gltf.scene.getObjectByName('collider-direction');
-      const colliderOverlineRoadline = gltf.scene.getObjectByName('collider-roadline');
-
-      if (colliderOverline) {
-        for (let item of colliderOverline.children) {
-          (item as Mesh).material = new MeshStandardMaterial({
-            transparent: true,
-            opacity: 0,
-          });
-        }
-      }
-      if (colliderOverlineRoadline) {
-        for (let item of colliderOverlineRoadline.children) {
-          (item as Mesh).material = new MeshStandardMaterial({
-            transparent: true,
-            opacity: 0,
-          });
-        }
-      }
-      if (colliderDirection) {
-        for (let item of colliderDirection.children) {
-          (item as Mesh).material = new MeshStandardMaterial({
-            transparent: true,
-            opacity: 0,
-          });
-        }
-      }
-    }
-  }, [gltf]);
-
-  const onKeyboardDown = (event: KeyboardEvent) => {
-    let e = event || window.event;
-    // console.log('key', e.key);
-    switch (e.key) {
-      case 'ArrowUp':
-        dispatch({
-          type: 'obdgps/saveSpeed',
-          payload: speedRef.current < MAX_SPEED ? speedRef.current + 1 : MAX_SPEED,
-        }); break;
-      
-      case 'ArrowDown':
-        dispatch({
-          type: 'obdgps/saveSpeed',
-          payload: speedRef.current > MIN_SPEED ? speedRef.current - 1: MIN_SPEED,
-        }); break;
-      
-      case 'ArrowLeft':
-        dispatch({
-          type: 'obdgps/saveDirection',
-          payload: directionRef.current > MIN_DIRECTION ? directionRef.current - 5: MIN_DIRECTION 
-        }); break;
-
-      case 'ArrowRight':
-        dispatch({
-          type: 'obdgps/saveDirection',
-          payload: directionRef.current < MAX_DIRECTION ? directionRef.current + 5: MAX_DIRECTION
-        }); break;
-    }
-  };
-
-  /**
-   * 60帧渲染定时器回调方法
-   */
-  const renderIntervalCallback = () => {
-    let [x, y, z] = positionRef.current;
-    let [rx, ry, rz] = rotationRef.current;
-    // 当前每一帧，车辆移动的距离，只考虑FPS=60的情况
-    const d = speedRef.current / 3.6 / FPS;
-    // 计算 两个方向上的增量
-    x += d * Math.sin(rz);
-    y += d * Math.cos(rz);
-
-    // 假设车辆方向由下面这个公式（方向盘角度，车速）决定
-    rz += directionRef.current / 360 / 360 * 20 / FPS * speedRef.current;
-
-    if (rz < 0) {
-      rz += Math.PI * 2;
-    } else if (rz > Math.PI * 2) {
-      rz -= Math.PI * 2;
-    }
-
-    dispatch({
-      type: 'obdgps/savePosition',
-      payload: [x, y, z]
-    });
-
-    dispatch({
-      type: 'obdgps/saveRotation',
-      payload: [rx, ry, rz]
-    });
-  }
-
-  /**
-   * 10HZ 发送OBDGPS数据给Main线程回调方法
-   */
-  const sendOBDToMainCallback = () => {
-    const obj = {
-      
-    }
-    window.sendOBD(obj);
-  }
-
-  const sendGPSToMainCallback = () => {
-    const obj = {
-      xCoordinate: Math.floor(positionRef.current[0] * 100),
-      yCoordinate: Math.floor(positionRef.current[1]* 100),
-      zCoordinate: Math.floor(positionRef.current[2] * 100),
-      horizontalAngle: Math.floor(radianToDegree(rotationRef.current[2]) * 100),
-      pitchAngle: Math.floor(radianToDegree(rotationRef.current[0]) * 100),
-      rollAngle: Math.floor(radianToDegree(rotationRef.current[1]) * 100),
-    };
-    window.sendGPS(obj);
-  }
-
-  return (
-    <>
-      <primitive object={gltf.scene} />
-    </>
-  );
-};
 
 const Car: React.FC<CarProps> = ({ position, rotation }) => {
   const gltf = useLoader(GLTFLoader, './car/car.gltf');
@@ -280,13 +113,7 @@ const Index = (props: MapProps) => {
         <Suspense
           fallback={ null }
         >
-          <Place
-            dispatch={props.dispatch}
-            speed={props.obdgps.speed}
-            direction={props.obdgps.direction}
-            rotation={props.obdgps.rotation}
-            position={props.obdgps.position}
-          />
+          <Place obdgps={props.obdgps} dispatch={props.dispatch} />
           <Car
             position={props.obdgps.position}
             rotation={props.obdgps.rotation}

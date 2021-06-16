@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Layout } from 'antd'
-import { useHistory, useLocation, useStore } from 'umi'
+import { useHistory, useLocation, useStore, connect } from 'umi'
+import { ipcRenderer } from 'electron';
 import Header from './header'
 import SideMenu from './menu'
 import store from '@utils/store/'
@@ -14,6 +15,19 @@ const BasicLayout: React.FC = (props: any) => {
   const history = useHistory()
   const [collapsed, setCollapsed] = useState(false)
   const [shopCurrent, setShopCurrent] = useState(store.get(''))
+
+  useEffect(() => {
+    const clientAddListener = (event: any, address: string) => {
+      props.dispatch({
+        type: 'server/addClient',
+        payload: address,
+      });
+    }
+    ipcRenderer.on('client-add', clientAddListener);
+    return () => {
+      ipcRenderer.removeListener('client-add', clientAddListener);
+    }
+  }, []);
 
   const clickCollapse = useCallback(() => {
     setCollapsed(!collapsed)
@@ -52,4 +66,4 @@ const BasicLayout: React.FC = (props: any) => {
   return LayoutDict[location.pathname] ? LayoutDict[location.pathname] : LayoutMain
 }
 
-export default BasicLayout
+export default connect(() => ({}))(BasicLayout);

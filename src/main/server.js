@@ -1,6 +1,7 @@
 import * as net from 'net';
 import chunk from 'lodash/chunk';
 import flatten from 'lodash/flatten';
+import { webContents } from './index';
 
 const obdKeys = [
   'code', 'keyStatus', 'batteryVoltage', 'engineSpeed', 'carSpeed', 'coolantTemp',
@@ -227,7 +228,7 @@ class TcpServer {
       this.server = net.createServer(socket => {
         this.connectedSockets.add(socket);
         console.log(`---tcp客户端已连接:${socket.remoteAddress}---`);
-        // ipcMain.send('log-message', `---tcp客户端已连接:${socket.remoteAddress}---`);
+        webContents.send('client-add', socket.remoteAddress);
 
         socket.on('end', () => {
           console.log(`---tcp客户端已断开:${socket.remoteAddress}---`);
@@ -237,6 +238,7 @@ class TcpServer {
         socket.on('close', () => {
           console.log(`---tcp客户端已关闭:${socket.remoteAddress}---`);
           this.connectedSockets.delete(socket);
+          webContents.send('client-remove', socket.remoteAddress);
           // ipcMain.send('log-message', `---tcp客户端已关闭:${socket.remoteAddress}---`);
         });
 
@@ -328,7 +330,7 @@ class TcpServer {
   broadcast(data, type) {
     this.connectedSockets.forEach(sock => {
       if (type === 'obd') {
-        // sock.write(this.toBuffer({ ...OBD, ...data }, obdKeys, OBD_CONSTANT));
+        sock.write(this.toBuffer({ ...OBD, ...data }, obdKeys, OBD_CONSTANT));
       } else {
         sock.write(this.toBuffer({ ...GPS, ...data }, gpsKeys, GPS_CONSTANT));
       }
