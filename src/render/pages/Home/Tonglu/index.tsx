@@ -1,22 +1,50 @@
 import React from 'react'
 import { Button, Card } from 'antd';
-import { connect, Gear, KeyStatus, OBDGPSStateType, ServerStateType }  from 'umi';
+import { connect, Gear, KeyStatus, OBDGPSStateType, ServerStateType, TraceMeta, TraceModelState }  from 'umi';
+import { Dispatch } from 'dva';
 import { ConnectState } from '@/models/connect';
 import Field from '@components/Field';
+import CardList from '@components/CardList';
 import { radianToDegree } from '@/utils/util';
 import styles from './index.less';
+import Axios from 'axios';
 
 interface IProps {
   obdgps: OBDGPSStateType;
   server: ServerStateType;
+  trace: TraceModelState;
+  dispatch: Dispatch;
 }
 
 const Index = (props: IProps) => {
-  const { obdgps: { position, rotation, speed, direction, leftTurnLight, rightTurnLight, handbrake, mainSafetyBalt, keyStatus, brake, clutch, gear  }, server: { clientList } } = props;
+  const {
+    obdgps: { position, rotation, speed, direction, leftTurnLight, rightTurnLight, handbrake, mainSafetyBalt, keyStatus, brake, clutch, gear  },
+    server: { clientList },
+    trace: { list: traceList },
+    dispatch
+  } = props;
+
+  const onCardClick = (item: TraceMeta) => {
+    // console.log('item', item);
+    Axios.request({
+      url: item.url,
+      method: 'get',
+    }).then(res => {
+      // console.log(res.data);
+      dispatch({
+        type: 'trace/saveCurrent',
+        payload: res.data.data || [] // 保证是个数组
+      });
+    })
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.field}>
         <Field />
+      </div>
+      <div className={styles.traceList}>
+        <CardList list={traceList} onCardClick={onCardClick} />
       </div>
       <div className={styles.tips}>
         <span>车速( ↑ ↓ )：{speed} km/h</span><br />
@@ -39,6 +67,13 @@ const Index = (props: IProps) => {
       </div>
       <div className={styles.back}>
         <Button onClick={() => {
+          props.dispatch({
+            type: 'obdgps/reset'
+          });
+        }} style={{ marginTop: 10 }}>
+          重置
+        </Button>
+        <Button onClick={() => {
           props.history.push('/')
         }} style={{ marginTop: 10 }}>
           返回
@@ -49,6 +84,6 @@ const Index = (props: IProps) => {
 }
 
 export default connect(
-  ({ obdgps, server }: ConnectState) => ({ obdgps, server })
+  ({ obdgps, server, trace }: ConnectState) => ({ obdgps, server, trace })
 )(Index);
 

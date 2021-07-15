@@ -29,6 +29,8 @@ export interface OBDGPSStateType {
   keyStatus: KeyStatus;
   brake: boolean;
   clutch: number;
+
+  pause: boolean;
 }
 
 export interface OBDGPSModelType {
@@ -41,6 +43,8 @@ export interface OBDGPSModelType {
     savePosition: Reducer<OBDGPSStateType>;
     saveRotation: Reducer<OBDGPSStateType>;
     saveOBD: Reducer<OBDGPSStateType>;
+    reset: Reducer<OBDGPSStateType>;
+    savePause: Reducer<OBDGPSStateType>;
   }
 }
 
@@ -59,6 +63,8 @@ const OBDGPSModel : OBDGPSModelType = {
     keyStatus: KeyStatus.OFF, // 钥匙状态
     brake: false, // 刹车
     clutch: 0, // 离合猜下程度
+
+    pause: false, // 暂停计算实时gps  拖拽时使用
   },
 
   reducers: {
@@ -96,6 +102,23 @@ const OBDGPSModel : OBDGPSModelType = {
       return {
         ...state,
         [key]: value
+      }
+    },
+
+    reset(state: any) {
+      return {
+        ...state,
+        speed: 0,
+        direction: 0,
+        position: [0, 0, 0],
+        rotation: [0, 0, 0]
+      }
+    },
+
+    savePause(state: any, { payload }) {
+      return {
+        ...state,
+        pause: payload,
       }
     }
   }

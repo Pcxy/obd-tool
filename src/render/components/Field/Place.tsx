@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import React, { Suspense, useEffect, useRef, } from 'react';
 import { Dispatch } from 'redux';
 import { connect, Gear, KeyStatus, OBDGPSStateType } from 'umi';
@@ -91,16 +92,17 @@ const Place: React.FC<PlaceProps> = ({
   }, [gltf]);
 
   const onKeyboardDown = (event: KeyboardEvent) => {
-    const { speed, direction, leftTurnLight, rightTurnLight, handbrake, mainSafetyBalt, keyStatus, brake, clutch, gear  } = latestObdgps.current;
+    const { speed, direction, leftTurnLight, rightTurnLight, handbrake, mainSafetyBalt, keyStatus, brake, clutch, gear, rotation } = latestObdgps.current;
     let e = event || window.event;
-    // console.log('key', e.key);
+    // console.log('key', e);
     switch (e.key) {
       case 'ArrowUp':
         dispatch({
           type: 'obdgps/saveSpeed',
           payload: speed < MAX_SPEED ? speed + 1 : MAX_SPEED,
-        }); break;
-      
+        });
+        break;
+
       case 'ArrowDown':
         dispatch({
           type: 'obdgps/saveSpeed',
@@ -108,16 +110,29 @@ const Place: React.FC<PlaceProps> = ({
         }); break;
       
       case 'ArrowLeft':
-        dispatch({
-          type: 'obdgps/saveDirection',
-          payload: direction > MIN_DIRECTION ? direction - 5: MIN_DIRECTION 
-        }); break;
+        e.shiftKey
+          ? dispatch({
+              type: 'obdgps/saveRotation',
+              payload: [rotation[0], rotation[1], rotation[2] - 5 / 180 * Math.PI]
+            })
+          : dispatch({
+            type: 'obdgps/saveDirection',
+            payload: direction > MIN_DIRECTION ? direction - 5: MIN_DIRECTION 
+          });
+        break;
 
       case 'ArrowRight':
-        dispatch({
-          type: 'obdgps/saveDirection',
-          payload: direction < MAX_DIRECTION ? direction + 5: MAX_DIRECTION
-        }); break;
+        e.shiftKey
+          ? dispatch({
+            type: 'obdgps/saveRotation',
+            payload: [rotation[0], rotation[1], rotation[2] + 5 / 180 * Math.PI]
+          })
+          : dispatch({
+            type: 'obdgps/saveDirection',
+            payload: direction < MAX_DIRECTION ? direction + 5: MAX_DIRECTION
+          });
+        break;
+
       case 'L':
         dispatch({
           type: 'obdgps/saveOBD',
@@ -214,7 +229,8 @@ const Place: React.FC<PlaceProps> = ({
    * 60帧渲染定时器回调方法
    */
   const renderIntervalCallback = () => {
-    const { position, rotation, speed, direction } = latestObdgps.current;
+    const { position, rotation, speed, direction, pause } = latestObdgps.current;
+    if (pause) return; // 暂停时不计算下一帧的gps
     let [x, y, z] = position;
     let [rx, ry, rz] = rotation;
     // 当前每一帧，车辆移动的距离，只考虑FPS=60的情况
@@ -288,13 +304,11 @@ const Place: React.FC<PlaceProps> = ({
   }
 
   const increaseGear = (gear: Gear) => {
-    console.log('gear', gear);
     if (gear === Gear.D5) return gear;
     return gear + 1;
   }
 
   const decreaseGear = (gear: Gear) => {
-    console.log('gear', gear);
     if (gear === Gear.R) return gear;
     return gear - 1;
   }
@@ -315,9 +329,7 @@ const Place: React.FC<PlaceProps> = ({
   }
 
   return (
-    <>
-      <primitive object={gltf.scene} />
-    </>
+    <primitive object={gltf.scene} />
   );
 };
 
