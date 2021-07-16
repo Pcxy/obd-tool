@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Card } from 'antd';
+import { Button, Tag } from 'antd';
 import { connect, Gear, KeyStatus, OBDGPSStateType, ServerStateType, StatsStateType, TraceMeta, TraceStateType }  from 'umi';
 import { Dispatch } from 'dva';
 import { ConnectState } from '@/models/connect';
@@ -69,8 +69,8 @@ const Index = (props: IProps) => {
         <span>离合( ( ) ): {clutch}%</span><br />
       </div>
       <div className={styles.clients}>
-        <span>当前连接用户：{clientList.map((client, index) => (
-          <span key={index}>{client}</span>
+        <span>当前连接终端地址：{clientList.map((client, index) => (
+          <Tag key={index}>{client}</Tag>
         ))}</span>
       </div>
       <div className={styles.sider}>

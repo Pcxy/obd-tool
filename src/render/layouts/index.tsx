@@ -23,9 +23,17 @@ const BasicLayout: React.FC = (props: any) => {
         payload: address,
       });
     }
+    const clientRemoveListener = (event: any, address: string) => {
+      props.dispatch({
+        type: 'server/removeClient',
+        payload: address,
+      });
+    }
     ipcRenderer.on('client-add', clientAddListener);
+    ipcRenderer.on('client-remove', clientRemoveListener);
     return () => {
       ipcRenderer.removeListener('client-add', clientAddListener);
+      ipcRenderer.removeListener('client-remove', clientRemoveListener);
     }
   }, []);
 

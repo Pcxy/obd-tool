@@ -11,8 +11,9 @@ export default function () {
   }
   return (
     <div className='homewrap'>
-      <div className='bigFt'>Welcome to MapleChain Electron App</div>
+      <div className='bigFt'>欢迎使用OBD-GPS模拟仿真工具</div>
       <AutoUpdate />
+      {/* <AutoUpdate />
       <div className='bigFt'>electron-store</div>
       <div className='bigFt'>
         <Button onClick={() => {
@@ -31,7 +32,7 @@ export default function () {
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <span style={{ margin: '10px 0' }}>Here is the copy msg | 选中任意文字后右键复制</span>
         <Input placeholder='右键黏贴~' />
-      </div>
+      </div> */}
     </div>
   )
 }

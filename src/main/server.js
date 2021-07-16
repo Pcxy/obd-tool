@@ -1,6 +1,7 @@
 import * as net from 'net';
 import chunk from 'lodash/chunk';
 import flatten from 'lodash/flatten';
+import Store from 'electron-store';
 import { webContents } from './index';
 
 const obdKeys = [
@@ -211,6 +212,7 @@ class TcpServer {
 
   timer;
   buffer;
+  store;
 
 
   constructor(port) {

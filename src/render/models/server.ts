@@ -10,6 +10,7 @@ export interface ServerModelType {
 
   reducers: {
     addClient: Reducer<ServerStateType>;
+    removeClient: Reducer<ServerStateType>;
   }
 }
 
@@ -23,6 +24,15 @@ const ServerModel: ServerModelType = {
       return {
         ...state,
         clientList: [...state.clientList, payload]
+      }
+    },
+    
+    removeClient(state: any, { payload }) {
+      const index = state.clientList.find(c => c === payload);
+      state.clientList.splice(index, 1);
+      return {
+        ...state,
+        clientList: [...state.clientList]
       }
     }
   }
