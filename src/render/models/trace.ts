@@ -6,18 +6,20 @@ export interface TraceMeta {
   url: string;
 }
 
-export interface TraceModelState {
+export interface TraceStateType {
   list: Array<TraceMeta>;
-  current: Array<any>;
+  current: TraceMeta & {
+    data: Array<any>
+  } | null;
 }
 
 export interface TraceModelType {
   namespace: 'trace',
-  state: TraceModelState;
+  state: TraceStateType;
 
   reducers: {
-    saveList: Reducer<TraceModelState>;
-    saveCurrent: Reducer<TraceModelState>;
+    saveList: Reducer<TraceStateType>;
+    saveCurrent: Reducer<TraceStateType>;
   }
 }
 
@@ -29,7 +31,7 @@ const TraceModel: TraceModelType = {
       { name: '侧方1', description: '侧方1', url: './json/侧方1.json' },
       { name: '侧方2', description: '侧方2', url: './json/侧方2.json' },
     ],
-    current: [],
+    current: null,
   },
 
   reducers: {

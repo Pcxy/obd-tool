@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dispatch } from 'redux';
-import { connect, OBDGPSStateType } from 'umi';
+import { connect, OBDGPSStateType, StatsStateType, TraceStateType } from 'umi';
 import {
   Canvas,
 } from '@react-three/fiber';
@@ -9,10 +9,14 @@ import {
 import { Color, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { ConnectState } from '@/models/connect';
 import Map from './Map';
+import KeyboardControl from './KeyboardControl';
+import Trace from './Trace';
 
 interface MapProps {
   dispatch: Dispatch;
   obdgps: OBDGPSStateType;
+  trace: TraceStateType;
+  stats: StatsStateType;
 }
 
 const Index = (props: MapProps) => {
@@ -39,10 +43,19 @@ const Index = (props: MapProps) => {
       style={{ width: '100%', height: '100%' }}
     >
       <Map {...props} />
+      {
+        props.stats.traceMode
+          ? <Trace
+              key={props.trace.current?.name}
+              traceList={props.trace.current?.data || []}
+              dispatch={props.dispatch}
+            />
+          : <KeyboardControl {...props}/>
+      }
     </Canvas>
   );
 };
 
 export default connect(
-  ({ obdgps }: ConnectState) => ({ obdgps })
+  ({ obdgps, trace, stats }: ConnectState) => ({ obdgps, trace, stats })
 )(Index);

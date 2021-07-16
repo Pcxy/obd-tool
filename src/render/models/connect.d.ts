@@ -1,8 +1,10 @@
 import { OBDGPSStateType  } from './obd';
 import { ServerStateType} from './server';
-import { TraceModelState } from './trace';
+import { TraceStateType } from './trace';
+import { StatsStateType} from './stats';
 export interface ConnectState {
   obdgps: OBDGPSStateType;
   server: ServerStateType;
-  trace: TraceModelState;
+  trace: TraceStateType;
+  stats: StatsStateType;
 }

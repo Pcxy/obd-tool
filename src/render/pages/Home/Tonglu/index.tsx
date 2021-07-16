@@ -33,8 +33,16 @@ const Index = (props: IProps) => {
       // console.log(res.data);
       dispatch({
         type: 'trace/saveCurrent',
-        payload: res.data.data || [] // 保证是个数组
+        payload: {
+          ...item,
+          data: res.data.data || [],
+        }
       });
+      // 进入播放轨迹模式
+      dispatch({
+        type: 'stats/saveTraceMode',
+        payload: true,
+      })
     })
   }
 

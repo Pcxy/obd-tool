@@ -53,7 +53,7 @@ const Car: React.FC<CarProps> = ({ position, rotation, dispatch }) => {
     // console.log('in start', event);
     // 拖拽前先暂停
     dispatch({
-      type: 'obdgps/savePause',
+      type: 'stats/savePause',
       payload: true,
     });
   }
@@ -63,7 +63,7 @@ const Car: React.FC<CarProps> = ({ position, rotation, dispatch }) => {
     const { x, y, z } = event.object.position;
     // 拖拽后开始
     dispatch({
-      type: 'obdgps/savePause',
+      type: 'stats/savePause',
       payload: false,
     });
     dispatch({
