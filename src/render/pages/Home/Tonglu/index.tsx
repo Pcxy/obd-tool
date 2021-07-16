@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button, Card } from 'antd';
-import { connect, Gear, KeyStatus, OBDGPSStateType, ServerStateType, TraceMeta, TraceModelState }  from 'umi';
+import { connect, Gear, KeyStatus, OBDGPSStateType, ServerStateType, StatsStateType, TraceMeta, TraceStateType }  from 'umi';
 import { Dispatch } from 'dva';
 import { ConnectState } from '@/models/connect';
 import Field from '@components/Field';
@@ -12,7 +12,8 @@ import Axios from 'axios';
 interface IProps {
   obdgps: OBDGPSStateType;
   server: ServerStateType;
-  trace: TraceModelState;
+  trace: TraceStateType;
+  stats: StatsStateType;
   dispatch: Dispatch;
 }
 
@@ -21,7 +22,8 @@ const Index = (props: IProps) => {
     obdgps: { position, rotation, speed, direction, leftTurnLight, rightTurnLight, handbrake, mainSafetyBalt, keyStatus, brake, clutch, gear  },
     server: { clientList },
     trace: { list: traceList },
-    dispatch
+    stats: { siderMode },
+    dispatch,
   } = props;
 
   const onCardClick = (item: TraceMeta) => {
@@ -51,9 +53,7 @@ const Index = (props: IProps) => {
       <div className={styles.field}>
         <Field />
       </div>
-      <div className={styles.traceList}>
-        <CardList list={traceList} onCardClick={onCardClick} />
-      </div>
+      
       <div className={styles.tips}>
         <span>车速( ↑ ↓ )：{speed} km/h</span><br />
         <span>档位( + - )：{Gear[gear]}</span><br />
@@ -73,25 +73,50 @@ const Index = (props: IProps) => {
           <span key={index}>{client}</span>
         ))}</span>
       </div>
-      <div className={styles.back}>
-        <Button onClick={() => {
-          props.dispatch({
-            type: 'obdgps/reset'
-          });
-        }} style={{ marginTop: 10 }}>
-          重置
-        </Button>
-        <Button onClick={() => {
-          props.history.push('/')
-        }} style={{ marginTop: 10 }}>
-          返回
-        </Button>
+      <div className={styles.sider}>
+        { siderMode
+          ? <>
+              <Button style={{ width: '100%', marginTop: 10 }} onClick={() => {
+                dispatch({
+                  type: 'stats/saveSiderMode',
+                  payload: false,
+                });
+                dispatch({
+                  type: 'stats/saveTraceMode',
+                  payload: false,
+                })
+              }}>返回自由模式</Button>
+              <CardList list={traceList} onCardClick={onCardClick} /> 
+            </>
+          : <div className={styles.buttons}>
+              <Button onClick={() => {
+                props.dispatch({
+                  type: 'stats/saveSiderMode',
+                  payload: true,
+                })
+              }} style={{ marginTop: 10 }}>
+                轨迹回放模式
+              </Button>
+              <Button onClick={() => {
+                props.dispatch({
+                  type: 'obdgps/reset'
+                });
+              }} style={{ marginTop: 10 }}>
+                回到原点
+              </Button>
+              <Button onClick={() => {
+                props.history.push('/')
+              }} style={{ marginTop: 10 }}>
+                返回首页
+              </Button>
+            </div>
+        }
       </div>
     </div>
   )
 }
 
 export default connect(
-  ({ obdgps, server, trace }: ConnectState) => ({ obdgps, server, trace })
+  ({ obdgps, server, trace, stats }: ConnectState) => ({ obdgps, server, trace, stats })
 )(Index);
 

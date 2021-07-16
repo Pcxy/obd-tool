@@ -14,7 +14,7 @@ const CarList = (props: Props) => {
   }
 
   return (
-    <div>
+    <div style={{ marginTop: 10}}>
       {props.list.map(item => (
         <Card
           key={item.name}
