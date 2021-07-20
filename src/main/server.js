@@ -17,7 +17,7 @@ const obdKeys = [
 const gpsKeys = [
   "code", "xCoordinate", "xCoordinateDirection", "yCoordinate", "yCoordinateDirection", "zCoordinate",
   "zCoordinateDirection", "horizontalAngle", "pitchAngle", "rollAngle", "solutionState", "satellitesNum",
-  "x_rate", "y_rate", "z_rate"
+  "x_rate", "y_rate", "z_rate", "speed"
 ];
 
 // OBD 常量的部分  xxx_no：协议中的编号  xxx_size:协议中的大小
@@ -151,7 +151,7 @@ const OBD = {
 };
 
 const GPS_CONSTANT = {
-  "prefix": "f1f2f3f4460081",
+  "prefix": "f1f2f3f45e0081",
   "code_no": "01",
   "code_size": 16,
   "xCoordinate_no": "02",
@@ -182,6 +182,8 @@ const GPS_CONSTANT = {
   "y_rate_size": 4,
   "z_rate_no": "0f",
   "z_rate_size": 4,
+  "speed_no": "10",
+  "speed_size": 4,
   "suffix": "bf160000"
 }
 
@@ -200,7 +202,8 @@ const GPS = {
   "satellitesNum": 12,
   "x_rate": 0,
   "y_rate": 0,
-  "z_rate": 0
+  "z_rate": 0,
+  "speed": 0,
 }
 
 class TcpServer {
