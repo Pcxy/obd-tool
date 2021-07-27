@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button, Tag } from 'antd';
-import { connect, Gear, KeyStatus, OBDGPSStateType, ServerStateType, StatsStateType, TraceMeta, TraceStateType }  from 'umi';
+import { connect, Gear, KeyStatus, OBDGPSStateType, ServerStateType, StatsStateType, TraceMeta, TraceStateType, history }  from 'umi';
 import { Dispatch } from 'dva';
 import { ConnectState } from '@/models/connect';
 import Field from '@components/Field';
@@ -8,6 +8,7 @@ import CardList from '@components/CardList';
 import { radianToDegree } from '@/utils/util';
 import styles from './index.less';
 import Axios from 'axios';
+import { useEffect } from 'react';
 
 interface IProps {
   obdgps: OBDGPSStateType;
@@ -15,6 +16,8 @@ interface IProps {
   trace: TraceStateType;
   stats: StatsStateType;
   dispatch: Dispatch;
+  fieldUrl: string;
+  originPoint: [number, number, number];
 }
 
 const Index = (props: IProps) => {
@@ -24,7 +27,18 @@ const Index = (props: IProps) => {
     trace: { list: traceList },
     stats: { siderMode },
     dispatch,
+    fieldUrl,
+    originPoint,
   } = props;
+
+  useEffect(() => {
+    return () => {
+      console.log('in reset')
+      dispatch({
+        type: 'obdgps/reset'
+      });
+    }
+  }, [])
 
   const onCardClick = (item: TraceMeta) => {
     // console.log('item', item);
@@ -51,7 +65,7 @@ const Index = (props: IProps) => {
   return (
     <div className={styles.container}>
       <div className={styles.field}>
-        <Field />
+        <Field url={fieldUrl} originPoint={originPoint} />
       </div>
       
       <div className={styles.tips}>
@@ -105,7 +119,7 @@ const Index = (props: IProps) => {
                 回到原点
               </Button>
               <Button onClick={() => {
-                props.history.push('/')
+                history.push('/')
               }} style={{ marginTop: 10 }}>
                 返回首页
               </Button>

@@ -8,6 +8,7 @@ interface Props {
   dispatch: Dispatch;
   obdgps: OBDGPSStateType;
   stats: StatsStateType;
+  originPoint: [number, number, number]
 }
 
 const MAX_SPEED = 60;
@@ -15,11 +16,11 @@ const MIN_SPEED = -10;
 const MAX_DIRECTION = 540;
 const MIN_DIRECTION = -540;
 
-const X_BASE = 330256330;
+// const X_BASE = 330256330;
 
-const Y_BASE = 48045999;
+// const Y_BASE = 48045999;
 
-const Z_BASE = 3944;
+// const Z_BASE = 3944;
 
 const FPS = 60;
 const gpsRate = 10;
@@ -243,6 +244,7 @@ export default (props: Props) => {
 
   const sendGPSToMainCallback = () => {
     const { position, rotation } = latestObdgps.current;
+    const [X_BASE, Y_BASE, Z_BASE] = props.originPoint;
     const obj = {
       xCoordinate: X_BASE + Math.floor(position[1] * 100),
       yCoordinate: Y_BASE + Math.floor(position[0] * 100),

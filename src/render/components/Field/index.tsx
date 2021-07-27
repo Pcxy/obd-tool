@@ -17,6 +17,8 @@ interface MapProps {
   obdgps: OBDGPSStateType;
   trace: TraceStateType;
   stats: StatsStateType;
+  url: string;
+  originPoint: [number, number, number];
 }
 
 const Index = (props: MapProps) => {

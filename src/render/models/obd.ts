@@ -45,22 +45,24 @@ export interface OBDGPSModelType {
   }
 }
 
+const initState = {
+  speed: 0, // 车速
+  direction: 0, // 方向盘角度
+  position: [0, 0, 0] as [number, number, number], // 位置
+  rotation: [0, 0, 0] as [number, number, number], // 角度
+  gear: Gear.N, // 档位
+  leftTurnLight: false, // 左转向灯
+  rightTurnLight: false, // 右转向灯
+  handbrake: false, // 手刹
+  mainSafetyBalt: false, // 主驾驶安全带
+  keyStatus: KeyStatus.OFF, // 钥匙状态
+  brake: false, // 刹车
+  clutch: 0, // 离合猜下程度
+};
+
 const OBDGPSModel : OBDGPSModelType = {
   namespace: 'obdgps',
-  state: {
-    speed: 0, // 车速
-    direction: 0, // 方向盘角度
-    position: [0, 0, 0], // 位置
-    rotation: [0, 0, 0], // 角度
-    gear: Gear.N, // 档位
-    leftTurnLight: false, // 左转向灯
-    rightTurnLight: false, // 右转向灯
-    handbrake: false, // 手刹
-    mainSafetyBalt: false, // 主驾驶安全带
-    keyStatus: KeyStatus.OFF, // 钥匙状态
-    brake: false, // 刹车
-    clutch: 0, // 离合猜下程度
-  },
+  state: initState,
 
   reducers: {
     saveSpeed(state: any, { payload }) {
@@ -93,7 +95,7 @@ const OBDGPSModel : OBDGPSModelType = {
 
     saveOBD(state: any, { payload }) {
       const { key, value } = payload;
-      console.log(key, value);
+      // console.log(key, value);
       return {
         ...state,
         [key]: value
@@ -103,11 +105,8 @@ const OBDGPSModel : OBDGPSModelType = {
     reset(state: any) {
       return {
         ...state,
-        speed: 0,
-        direction: 0,
-        position: [0, 0, 0],
-        rotation: [0, 0, 0]
-      }
+        ...initState
+      };
     },
   }
 }

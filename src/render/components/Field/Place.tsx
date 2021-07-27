@@ -12,10 +12,11 @@ import { Mesh, MeshStandardMaterial } from 'three';
 interface PlaceProps {
   dispatch: Dispatch;
   obdgps: OBDGPSStateType;
+  url: string;
 }
 
-const Place: React.FC<PlaceProps> = () => {
-  const gltf = useLoader(GLTFLoader, './tonglu/field.gltf');
+const Place: React.FC<PlaceProps> = (props: PlaceProps) => {
+  const gltf = useLoader(GLTFLoader, props.url);
 
   // 加载gltf
   useEffect(() => {

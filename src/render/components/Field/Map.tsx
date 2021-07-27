@@ -14,6 +14,7 @@ import Light from './Light';
 interface MapProps {
   dispatch: Dispatch;
   obdgps: OBDGPSStateType;
+  url: string;
 }
 
 const Map = (props: MapProps) => {
@@ -43,7 +44,7 @@ const Map = (props: MapProps) => {
         <Suspense
           fallback={ null }
         >
-          <Place obdgps={props.obdgps} dispatch={props.dispatch} />
+          <Place {...props} />
           <Car
             position={props.obdgps.position}
             rotation={props.obdgps.rotation}
